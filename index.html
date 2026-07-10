@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0">
+<title>Math Practice — Addition, Subtraction, Multiplication & Division</title>
+
+<!-- iPad / iOS: run full-screen when added to Home Screen -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Math Practice">
+<meta name="theme-color" content="#1565c0">
+<meta name="format-detection" content="telephone=no">
+<!-- Inline SVG app icon (no external file needed) -->
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Crect width='180' height='180' rx='40' fill='%231565c0'/%3E%3Ctext x='50%25' y='54%25' font-size='96' text-anchor='middle' dominant-baseline='middle' fill='white' font-family='sans-serif' font-weight='bold'%3E%C3%B7%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='64' height='64' rx='14' fill='%231565c0'/%3E%3Ctext x='50%25' y='56%25' font-size='38' text-anchor='middle' dominant-baseline='middle' fill='white' font-family='sans-serif' font-weight='bold'%3E%C3%B7%3C/text%3E%3C/svg%3E">
+<style>
+  :root { --green:#2e7d32; --red:#c62828; --blue:#1565c0; --bg:#f4f7fb; }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background: var(--bg); color: #222; margin: 0;
+    /* Respect the iPad notch/rounded corners in full-screen mode */
+    padding: max(24px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+             max(24px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+    -webkit-tap-highlight-color: transparent;
+  }
+  button, .tab, .harder { touch-action: manipulation; }
+  h1 { text-align: center; color: var(--blue); margin: 0 0 4px; }
+  .subtitle { text-align: center; color: #555; margin: 0 0 20px; }
+  .toolbar { text-align: center; margin-bottom: 24px; }
+  button {
+    font-size: 16px; padding: 10px 20px; margin: 0 6px;
+    border: none; border-radius: 8px; cursor: pointer;
+    background: var(--blue); color: #fff; font-weight: 600;
+  }
+  button.secondary { background: #607d8b; }
+  button:hover { opacity: 0.9; }
+  .tabs {
+    display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;
+    max-width: 1100px; margin: 0 auto 20px;
+  }
+  .tab {
+    font-size: 16px; padding: 10px 22px; border: none; cursor: pointer;
+    background: #e3e9f2; color: #37474f; font-weight: 700; border-radius: 10px;
+    border-bottom: 4px solid transparent;
+  }
+  .tab:hover { background: #d4dcea; }
+  .tab.active { color: #fff; }
+  .tab.add.active { background: #2e7d32; border-bottom-color: #1b5e20; }
+  .tab.sub.active { background: #ef6c00; border-bottom-color: #b53d00; }
+  .tab.mul.active { background: #6a1b9a; border-bottom-color: #4a0072; }
+  .tab.div.active { background: #00838f; border-bottom-color: #005662; }
+  .harder {
+    display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+    font-size: 16px; font-weight: 600; color: #37474f; user-select: none;
+  }
+  .harder input { width: 20px; height: 20px; cursor: pointer; }
+  .grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px; max-width: 1100px; margin: 0 auto;
+  }
+  .card {
+    background: #fff; border-radius: 12px; padding: 16px 18px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08); border-left: 6px solid var(--blue);
+  }
+  .card.add { border-left-color: #2e7d32; }
+  .card.sub { border-left-color: #ef6c00; }
+  .card.mul { border-left-color: #6a1b9a; }
+  .card.div { border-left-color: #00838f; }
+  .qnum { font-size: 13px; color: #888; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+  .problem {
+    font-size: 30px; font-weight: 700; font-family: "Consolas", monospace;
+    text-align: right; margin: 8px 0 12px; color: #111;
+  }
+  .answer-row { display: flex; align-items: center; gap: 8px; }
+  input[type="number"] {
+    font-size: 24px; padding: 8px 10px; width: 100%; text-align: right;
+    border: 2px solid #cfd8dc; border-radius: 8px; font-family: "Consolas", monospace;
+  }
+  input.correct { border-color: var(--green); background: #e8f5e9; }
+  input.wrong { border-color: var(--red); background: #ffebee; }
+  .feedback { font-size: 22px; width: 28px; text-align: center; }
+  .scorebar {
+    text-align: center; font-size: 20px; font-weight: 700;
+    margin: 24px auto 0; max-width: 400px; padding: 14px;
+    background: #fff; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  }
+</style>
+</head>
+<body>
+  <h1>Math Practice</h1>
+  <p class="subtitle" id="subtitle"></p>
+
+  <div class="tabs" id="tabs">
+    <button class="tab add active" data-op="+" onclick="switchTab('+')">➕ Addition</button>
+    <button class="tab sub" data-op="-" onclick="switchTab('-')">➖ Subtraction</button>
+    <button class="tab mul" data-op="×" onclick="switchTab('×')">✖️ Multiplication</button>
+    <button class="tab div" data-op="÷" onclick="switchTab('÷')">➗ Division</button>
+  </div>
+
+  <div class="toolbar">
+    <label class="harder" id="harderWrap" style="display:none; margin-right:12px;">
+      <input type="checkbox" id="harderBox" onchange="toggleHarder()"> Make it harder (bigger numbers)
+    </label>
+    <button onclick="checkAll()">Check My Answers</button>
+    <button class="secondary" onclick="newProblems()">New Problems</button>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="scorebar" id="scorebar">Fill in your answers, then click <b>Check My Answers</b>.</div>
+
+<script>
+  const NUM_EACH = 10;
+
+  function randInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  // Count how many carries happen in a + b
+  function countCarries(a, b) {
+    let carry = 0, carries = 0;
+    while (a > 0 || b > 0) {
+      const s = (a % 10) + (b % 10) + carry;
+      carry = s >= 10 ? 1 : 0;
+      carries += carry;
+      a = Math.floor(a / 10);
+      b = Math.floor(b / 10);
+    }
+    return carries;
+  }
+
+  // Count how many borrows happen in a - b (a >= b)
+  function countBorrows(a, b) {
+    let borrow = 0, borrows = 0;
+    while (b > 0 || a > 0) {
+      let top = (a % 10) - borrow;
+      const bot = b % 10;
+      if (top < bot) { borrow = 1; borrows++; }
+      else { borrow = 0; }
+      a = Math.floor(a / 10);
+      b = Math.floor(b / 10);
+    }
+    return borrows;
+  }
+
+  function makeAddition() {
+    while (true) {
+      const a = randInt(1000, 999999);
+      const b = randInt(1000, 999999);
+      if (countCarries(a, b) >= 3) return { a, b, op: '+' };
+    }
+  }
+
+  function makeSubtraction() {
+    while (true) {
+      let a = randInt(10000, 999999);
+      let b = randInt(1000, a - 1);
+      if (countBorrows(a, b) >= 3) return { a, b, op: '-' };
+    }
+  }
+
+  // Count non-zero digits (excludes trivial digits like 0 that make a column easy)
+  function nonZeroDigits(n) {
+    let count = 0;
+    while (n > 0) { if (n % 10 !== 0) count++; n = Math.floor(n / 10); }
+    return count;
+  }
+
+  // Challenging multiplication: 3-digit × 2-digit (normal) or
+  // 5–6-digit × 3-digit (harder), with no convenient zeros/ones.
+  function makeMultiplication(harder) {
+    while (true) {
+      const a = harder ? randInt(10000, 999999) : randInt(112, 989);
+      const b = harder ? randInt(112, 989) : randInt(23, 89);
+      const aDigits = harder ? 5 : 3;
+      if (nonZeroDigits(a) >= aDigits && nonZeroDigits(b) === (harder ? 3 : 2) &&
+          a % 10 !== 0 && b % 10 !== 0 && b % 10 !== 1) {
+        return { a, b, op: '×' };
+      }
+    }
+  }
+
+  // Challenging division: exact quotient with a 2-digit divisor (normal) or
+  // 3-digit divisor (harder), and a multi-digit quotient (no remainder).
+  function makeDivision(harder) {
+    while (true) {
+      const divisor = harder ? randInt(112, 399) : randInt(12, 39);
+      const quotient = harder ? randInt(112, 989) : randInt(112, 989);
+      const a = divisor * quotient;
+      if (a <= 9999999 && nonZeroDigits(quotient) >= 2 &&
+          (!harder || nonZeroDigits(divisor) >= 2)) {
+        return { a, b: divisor, op: '÷' };
+      }
+    }
+  }
+
+  const TABS = {
+    '+': { cls: 'add', label: 'Addition', harder: false,
+           make: () => makeAddition(),
+           note: 'Multi-digit addition — watch out for the carrying!' },
+    '-': { cls: 'sub', label: 'Subtraction', harder: false,
+           make: () => makeSubtraction(),
+           note: 'Multi-digit subtraction — watch out for the borrowing!' },
+    '×': { cls: 'mul', label: 'Multiplication', harder: false,
+           make: (h) => makeMultiplication(h),
+           note: 'Multi-digit multiplication — mind the partial products!' },
+    '÷': { cls: 'div', label: 'Division', harder: false,
+           make: (h) => makeDivision(h),
+           note: 'Exact long division — no remainders!' },
+  };
+
+  let activeOp = '+';
+  let problems = [];
+
+  function buildProblems() {
+    const tab = TABS[activeOp];
+    problems = [];
+    for (let i = 0; i < NUM_EACH; i++) problems.push(tab.make(tab.harder));
+  }
+
+  function fmt(n) { return n.toLocaleString('en-US'); }
+
+  function render() {
+    const tab = TABS[activeOp];
+
+    // Tab highlight
+    document.querySelectorAll('.tab').forEach((t) => {
+      t.classList.toggle('active', t.dataset.op === activeOp);
+    });
+
+    // Harder checkbox only for × and ÷
+    const showHarder = activeOp === '×' || activeOp === '÷';
+    document.getElementById('harderWrap').style.display = showHarder ? 'inline-flex' : 'none';
+    document.getElementById('harderBox').checked = tab.harder;
+
+    document.getElementById('subtitle').textContent =
+      `${NUM_EACH} ${tab.label} problems — ${tab.note}` +
+      (tab.harder ? ' 🔥 Harder mode!' : '');
+
+    const grid = document.getElementById('grid');
+    grid.innerHTML = '';
+    problems.forEach((p, i) => {
+      let answer;
+      switch (p.op) {
+        case '+': answer = p.a + p.b; break;
+        case '-': answer = p.a - p.b; break;
+        case '×': answer = p.a * p.b; break;
+        case '÷': answer = p.a / p.b; break;
+      }
+      const card = document.createElement('div');
+      card.className = 'card ' + tab.cls;
+      card.innerHTML = `
+        <div class="qnum">Problem ${i + 1}</div>
+        <div class="problem">${fmt(p.a)}<br>${p.op} ${fmt(p.b)}</div>
+        <div class="answer-row">
+          <input type="number" inputmode="numeric" id="ans${i}" data-answer="${answer}" placeholder="?" autocomplete="off">
+          <span class="feedback" id="fb${i}"></span>
+        </div>`;
+      grid.appendChild(card);
+    });
+    document.getElementById('scorebar').innerHTML =
+      'Fill in your answers, then click <b>Check My Answers</b>.';
+  }
+
+  function switchTab(op) {
+    if (op === activeOp) return;
+    activeOp = op;
+    buildProblems();
+    render();
+  }
+
+  function toggleHarder() {
+    TABS[activeOp].harder = document.getElementById('harderBox').checked;
+    buildProblems();
+    render();
+  }
+
+  function checkAll() {
+    let correct = 0, attempted = 0;
+    problems.forEach((p, i) => {
+      const input = document.getElementById('ans' + i);
+      const fb = document.getElementById('fb' + i);
+      const expected = Number(input.dataset.answer);
+      input.classList.remove('correct', 'wrong');
+      if (input.value.trim() === '') { fb.textContent = ''; return; }
+      attempted++;
+      if (Number(input.value) === expected) {
+        input.classList.add('correct'); fb.textContent = '✅'; correct++;
+      } else {
+        input.classList.add('wrong'); fb.textContent = '❌';
+      }
+    });
+    const bar = document.getElementById('scorebar');
+    if (attempted === 0) {
+      bar.innerHTML = 'Type in some answers first! ✍️';
+    } else {
+      bar.innerHTML = `Score: <span style="color:#2e7d32">${correct}</span> / ${attempted} correct` +
+        (correct === problems.length ? ' 🎉 Perfect!' : '');
+    }
+  }
+
+  function newProblems() { buildProblems(); render(); }
+
+  buildProblems();
+  render();
+</script>
+</body>
+</html>
