@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0">
-<title>Math Practice — Addition, Subtraction, Multiplication & Division</title>
+<title>Math Practice - Arithmetic and BODMAS</title>
 
 <!-- iPad / iOS: run full-screen when added to Home Screen -->
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -16,7 +16,7 @@
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Crect width='180' height='180' rx='40' fill='%231565c0'/%3E%3Ctext x='50%25' y='54%25' font-size='96' text-anchor='middle' dominant-baseline='middle' fill='white' font-family='sans-serif' font-weight='bold'%3E%C3%B7%3C/text%3E%3C/svg%3E">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='64' height='64' rx='14' fill='%231565c0'/%3E%3Ctext x='50%25' y='56%25' font-size='38' text-anchor='middle' dominant-baseline='middle' fill='white' font-family='sans-serif' font-weight='bold'%3E%C3%B7%3C/text%3E%3C/svg%3E">
 <style>
-  :root { --green:#2e7d32; --red:#c62828; --blue:#1565c0; --bg:#f4f7fb; }
+  :root { --green:#2e7d32; --red:#c62828; --blue:#1565c0; --purple:#7b1fa2; --bg:#f4f7fb; }
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
   body {
@@ -27,7 +27,7 @@
              max(24px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
     -webkit-tap-highlight-color: transparent;
   }
-  button, .tab, .harder { touch-action: manipulation; }
+  button, .tab, .harder, .bodmas-options { touch-action: manipulation; }
   h1 { text-align: center; color: var(--blue); margin: 0 0 4px; }
   .subtitle { text-align: center; color: #555; margin: 0 0 20px; }
   .toolbar { text-align: center; margin-bottom: 24px; }
@@ -53,11 +53,16 @@
   .tab.sub.active { background: #ef6c00; border-bottom-color: #b53d00; }
   .tab.mul.active { background: #6a1b9a; border-bottom-color: #4a0072; }
   .tab.div.active { background: #00838f; border-bottom-color: #005662; }
-  .harder {
+  .tab.bodmas.active { background: var(--purple); border-bottom-color: #4a0072; }
+  .harder, .bodmas-options {
     display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
     font-size: 16px; font-weight: 600; color: #37474f; user-select: none;
   }
   .harder input { width: 20px; height: 20px; cursor: pointer; }
+  .bodmas-options select {
+    font-size: 16px; padding: 8px 10px; border: 2px solid #cfd8dc;
+    border-radius: 8px; background: #fff; color: #37474f; font-weight: 600;
+  }
   .grid {
     display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 16px; max-width: 1100px; margin: 0 auto;
@@ -70,11 +75,24 @@
   .card.sub { border-left-color: #ef6c00; }
   .card.mul { border-left-color: #6a1b9a; }
   .card.div { border-left-color: #00838f; }
+  .card.bodmas { border-left-color: var(--purple); }
   .qnum { font-size: 13px; color: #888; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
   .problem {
     font-size: 30px; font-weight: 700; font-family: "Consolas", monospace;
     text-align: right; margin: 8px 0 12px; color: #111;
   }
+  .problem.bodmas {
+    min-height: 78px; display: flex; align-items: center; justify-content: center;
+    font-size: 22px; text-align: center; white-space: nowrap;
+  }
+  .problem.fraction-problem { font-size: 17px; }
+  .fraction {
+    display: inline-grid; grid-template-rows: auto auto; align-items: center;
+    min-width: 90%; line-height: 1.35;
+  }
+  .numerator { border-bottom: 3px solid #222; padding: 0 8px 5px; }
+  .denominator { padding: 5px 8px 0; }
+  sup { font-size: 0.65em; }
   .answer-row { display: flex; align-items: center; gap: 8px; }
   input[type="number"] {
     font-size: 24px; padding: 8px 10px; width: 100%; text-align: right;
@@ -83,10 +101,19 @@
   input.correct { border-color: var(--green); background: #e8f5e9; }
   input.wrong { border-color: var(--red); background: #ffebee; }
   .feedback { font-size: 22px; width: 28px; text-align: center; }
+  .solution {
+    display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid #e0e0e0;
+    color: #555; font-size: 14px; line-height: 1.45;
+  }
+  .solution.visible { display: block; }
   .scorebar {
     text-align: center; font-size: 20px; font-weight: 700;
     margin: 24px auto 0; max-width: 400px; padding: 14px;
     background: #fff; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  }
+  @media (max-width: 480px) {
+    .problem.bodmas { font-size: 19px; }
+    .problem.fraction-problem { font-size: 15px; }
   }
 </style>
 </head>
@@ -99,13 +126,22 @@
     <button class="tab sub" data-op="-" onclick="switchTab('-')">➖ Subtraction</button>
     <button class="tab mul" data-op="×" onclick="switchTab('×')">✖️ Multiplication</button>
     <button class="tab div" data-op="÷" onclick="switchTab('÷')">➗ Division</button>
+    <button class="tab bodmas" data-op="BODMAS" onclick="switchTab('BODMAS')">BODMAS</button>
   </div>
 
   <div class="toolbar">
     <label class="harder" id="harderWrap" style="display:none; margin-right:12px;">
       <input type="checkbox" id="harderBox" onchange="toggleHarder()"> Make it harder (bigger numbers)
     </label>
+    <label class="bodmas-options" id="bodmasWrap" style="display:none; margin-right:12px;">
+      Level
+      <select id="bodmasMode" onchange="changeBodmasMode()">
+        <option value="simple">Simple Expression</option>
+        <option value="fraction">Tough Fraction</option>
+      </select>
+    </label>
     <button onclick="checkAll()">Check My Answers</button>
+    <button class="secondary" id="solutionsButton" style="display:none;" onclick="toggleSolutions()">Show Solutions</button>
     <button class="secondary" onclick="newProblems()">New Problems</button>
   </div>
 
@@ -118,6 +154,14 @@
 
   function randInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function pick(items) {
+    return items[randInt(0, items.length - 1)];
+  }
+
+  function formatSigned(value) {
+    return value < 0 ? `(${value})` : String(value);
   }
 
   // Count how many carries happen in a + b
@@ -198,6 +242,68 @@
     }
   }
 
+  function makeSquareProduct(root) {
+    const square = root ** 2;
+    const factors = [];
+    for (let factor = 2; factor <= Math.sqrt(square); factor++) {
+      if (square % factor === 0 && square / factor <= 100) {
+        factors.push([factor, square / factor]);
+      }
+    }
+    return factors.length ? pick(factors) : [root, root];
+  }
+
+  function makeNumeratorExpression(target) {
+    const difference = Math.ceil(Math.sqrt(target)) + randInt(1, 3);
+    const root = (difference ** 2) - target;
+    const right = randInt(2, 8);
+    const left = difference + right;
+    const [rootFactorA, rootFactorB] = makeSquareProduct(root);
+    return {
+      html: `((${left} - ${right})<sup>2</sup> - &radic;(${rootFactorA} &times; ${rootFactorB}))`,
+      text: `((${left} - ${right})^2 - sqrt(${rootFactorA} * ${rootFactorB}))`,
+      answer: target,
+      steps: `Brackets: ${left} - ${right} = ${difference}. Orders: ${difference}<sup>2</sup> = ${difference ** 2} and &radic;(${rootFactorA} &times; ${rootFactorB}) = ${root}. Then ${difference ** 2} - ${root} = ${target}.`
+    };
+  }
+
+  function makeDenominatorExpression(target) {
+    let negative = randInt(2, 8);
+    while ((negative ** 2) + target < 2) negative = randInt(2, 8);
+    const start = (negative ** 2) + target;
+    return {
+      html: `(${start} - ${formatSigned(-negative)}<sup>2</sup>)`,
+      text: `(${start} - ${formatSigned(-negative)}^2)`,
+      answer: target,
+      steps: `Orders: ${formatSigned(-negative)}<sup>2</sup> = ${negative ** 2}. Then ${start} - ${negative ** 2} = ${target}.`
+    };
+  }
+
+  function makeSimpleBodmas() {
+    const numeratorStyle = Math.random() < 0.5;
+    const target = numeratorStyle ? randInt(4, 60) : randInt(-12, 18) || 1;
+    const expression = numeratorStyle
+      ? makeNumeratorExpression(target)
+      : makeDenominatorExpression(target);
+    return { ...expression, kind: 'simple', op: 'BODMAS' };
+  }
+
+  function makeBodmasFraction() {
+    const denominatorValue = randInt(1, 12);
+    const quotient = randInt(2, 12);
+    const numeratorValue = denominatorValue * quotient;
+    const numerator = makeNumeratorExpression(numeratorValue);
+    const denominator = makeDenominatorExpression(denominatorValue);
+    return {
+      kind: 'fraction',
+      op: 'BODMAS',
+      html: `<span class="fraction"><span class="numerator">${numerator.html}</span><span class="denominator">${denominator.html}</span></span>`,
+      text: `(${numerator.text}) / (${denominator.text})`,
+      answer: quotient,
+      steps: `Numerator: ${numerator.steps}<br>Denominator: ${denominator.steps}<br>Finally: ${numeratorValue} &divide; ${denominatorValue} = ${quotient}.`
+    };
+  }
+
   const TABS = {
     '+': { cls: 'add', label: 'Addition', harder: false,
            make: () => makeAddition(),
@@ -211,10 +317,15 @@
     '÷': { cls: 'div', label: 'Division', harder: false,
            make: (h) => makeDivision(h),
            note: 'Exact long division — no remainders!' },
+    'BODMAS': { cls: 'bodmas', label: 'BODMAS', harder: false,
+                make: () => bodmasMode === 'fraction' ? makeBodmasFraction() : makeSimpleBodmas(),
+                note: 'Follow Brackets, Orders, Division, Multiplication, Addition and Subtraction.' },
   };
 
   let activeOp = '+';
+  let bodmasMode = 'simple';
   let problems = [];
+  let solutionsVisible = false;
 
   function buildProblems() {
     const tab = TABS[activeOp];
@@ -232,34 +343,50 @@
       t.classList.toggle('active', t.dataset.op === activeOp);
     });
 
-    // Harder checkbox only for × and ÷
+    // Show controls only where they apply.
     const showHarder = activeOp === '×' || activeOp === '÷';
     document.getElementById('harderWrap').style.display = showHarder ? 'inline-flex' : 'none';
     document.getElementById('harderBox').checked = tab.harder;
+    const showBodmas = activeOp === 'BODMAS';
+    document.getElementById('bodmasWrap').style.display = showBodmas ? 'inline-flex' : 'none';
+    document.getElementById('bodmasMode').value = bodmasMode;
+    document.getElementById('solutionsButton').style.display = showBodmas ? 'inline-block' : 'none';
+    document.getElementById('solutionsButton').textContent =
+      solutionsVisible ? 'Hide Solutions' : 'Show Solutions';
 
     document.getElementById('subtitle').textContent =
-      `${NUM_EACH} ${tab.label} problems — ${tab.note}` +
+      `${NUM_EACH} ${tab.label} problems - ${tab.note}` +
+      (showBodmas ? ` ${bodmasMode === 'fraction' ? 'Tough fraction mode.' : 'Simple expression mode.'}` : '') +
       (tab.harder ? ' 🔥 Harder mode!' : '');
 
     const grid = document.getElementById('grid');
     grid.innerHTML = '';
     problems.forEach((p, i) => {
-      let answer;
-      switch (p.op) {
-        case '+': answer = p.a + p.b; break;
-        case '-': answer = p.a - p.b; break;
-        case '×': answer = p.a * p.b; break;
-        case '÷': answer = p.a / p.b; break;
+      let answer = p.answer;
+      if (p.op !== 'BODMAS') {
+        switch (p.op) {
+          case '+': answer = p.a + p.b; break;
+          case '-': answer = p.a - p.b; break;
+          case '×': answer = p.a * p.b; break;
+          case '÷': answer = p.a / p.b; break;
+        }
       }
       const card = document.createElement('div');
       card.className = 'card ' + tab.cls;
+      const problemHtml = p.op === 'BODMAS'
+        ? `<div class="problem bodmas${p.kind === 'fraction' ? ' fraction-problem' : ''}" aria-label="${p.text}">${p.html}</div>`
+        : `<div class="problem">${fmt(p.a)}<br>${p.op} ${fmt(p.b)}</div>`;
+      const solutionHtml = p.op === 'BODMAS'
+        ? `<div class="solution${solutionsVisible ? ' visible' : ''}"><strong>Solution:</strong> ${p.steps}</div>`
+        : '';
       card.innerHTML = `
         <div class="qnum">Problem ${i + 1}</div>
-        <div class="problem">${fmt(p.a)}<br>${p.op} ${fmt(p.b)}</div>
+        ${problemHtml}
         <div class="answer-row">
-          <input type="number" inputmode="numeric" id="ans${i}" data-answer="${answer}" placeholder="?" autocomplete="off">
+          <input type="number" inputmode="${p.op === 'BODMAS' ? 'decimal' : 'numeric'}" id="ans${i}" data-answer="${answer}" placeholder="?" autocomplete="off">
           <span class="feedback" id="fb${i}"></span>
-        </div>`;
+        </div>
+        ${solutionHtml}`;
       grid.appendChild(card);
     });
     document.getElementById('scorebar').innerHTML =
@@ -269,6 +396,7 @@
   function switchTab(op) {
     if (op === activeOp) return;
     activeOp = op;
+    solutionsVisible = false;
     buildProblems();
     render();
   }
@@ -277,6 +405,22 @@
     TABS[activeOp].harder = document.getElementById('harderBox').checked;
     buildProblems();
     render();
+  }
+
+  function changeBodmasMode() {
+    bodmasMode = document.getElementById('bodmasMode').value;
+    solutionsVisible = false;
+    buildProblems();
+    render();
+  }
+
+  function toggleSolutions() {
+    solutionsVisible = !solutionsVisible;
+    document.querySelectorAll('.solution').forEach((solution) => {
+      solution.classList.toggle('visible', solutionsVisible);
+    });
+    document.getElementById('solutionsButton').textContent =
+      solutionsVisible ? 'Hide Solutions' : 'Show Solutions';
   }
 
   function checkAll() {
@@ -303,7 +447,11 @@
     }
   }
 
-  function newProblems() { buildProblems(); render(); }
+  function newProblems() {
+    solutionsVisible = false;
+    buildProblems();
+    render();
+  }
 
   buildProblems();
   render();
