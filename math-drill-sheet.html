@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0">
-<title>Math Practice - Arithmetic and BODMAS</title>
+<title>Math Practice - Arithmetic, BODMAS and Algebra</title>
 
 <!-- iPad / iOS: run full-screen when added to Home Screen -->
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -54,6 +54,7 @@
   .tab.mul.active { background: #6a1b9a; border-bottom-color: #4a0072; }
   .tab.div.active { background: #00838f; border-bottom-color: #005662; }
   .tab.bodmas.active { background: var(--purple); border-bottom-color: #4a0072; }
+  .tab.algebra.active { background: #c2185b; border-bottom-color: #880e4f; }
   .harder, .bodmas-options {
     display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
     font-size: 16px; font-weight: 600; color: #37474f; user-select: none;
@@ -76,6 +77,7 @@
   .card.mul { border-left-color: #6a1b9a; }
   .card.div { border-left-color: #00838f; }
   .card.bodmas { border-left-color: var(--purple); }
+  .card.algebra { border-left-color: #c2185b; }
   .qnum { font-size: 13px; color: #888; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
   .problem {
     font-size: 30px; font-weight: 700; font-family: "Consolas", monospace;
@@ -84,6 +86,10 @@
   .problem.bodmas {
     min-height: 78px; display: flex; align-items: center; justify-content: center;
     font-size: 22px; text-align: center; white-space: nowrap;
+  }
+  .problem.algebra {
+    min-height: 78px; display: flex; align-items: center; justify-content: center;
+    font-size: 28px; text-align: center;
   }
   .problem.fraction-problem { font-size: 17px; }
   .fraction {
@@ -127,6 +133,7 @@
     <button class="tab mul" data-op="×" onclick="switchTab('×')">✖️ Multiplication</button>
     <button class="tab div" data-op="÷" onclick="switchTab('÷')">➗ Division</button>
     <button class="tab bodmas" data-op="BODMAS" onclick="switchTab('BODMAS')">BODMAS</button>
+    <button class="tab algebra" data-op="ALGEBRA" onclick="switchTab('ALGEBRA')">Algebra</button>
   </div>
 
   <div class="toolbar">
@@ -304,6 +311,70 @@
     };
   }
 
+  function makeAlgebra() {
+    const x = randInt(2, 20);
+    const style = randInt(1, 8);
+    let html;
+    let steps;
+
+    switch (style) {
+      case 1: {
+        const addend = randInt(2, 15);
+        html = `x + ${addend} = ${x + addend}`;
+        steps = `Subtract ${addend} from both sides: x = ${x}.`;
+        break;
+      }
+      case 2: {
+        const subtrahend = randInt(1, Math.min(15, x - 1));
+        html = `x - ${subtrahend} = ${x - subtrahend}`;
+        steps = `Add ${subtrahend} to both sides: x = ${x}.`;
+        break;
+      }
+      case 3: {
+        const coefficient = randInt(2, 12);
+        html = `${coefficient}x = ${coefficient * x}`;
+        steps = `Divide both sides by ${coefficient}: x = ${x}.`;
+        break;
+      }
+      case 4: {
+        const divisor = randInt(2, 10);
+        const quotient = randInt(2, 12);
+        const dividend = divisor * quotient;
+        html = `x &divide; ${divisor} = ${quotient}`;
+        steps = `Multiply both sides by ${divisor}: x = ${dividend}.`;
+        return { op: 'ALGEBRA', html, text: `x / ${divisor} = ${quotient}`, answer: dividend, steps };
+      }
+      case 5: {
+        const coefficient = randInt(2, 8);
+        const addend = randInt(2, 15);
+        html = `${coefficient}x + ${addend} = ${(coefficient * x) + addend}`;
+        steps = `Subtract ${addend}: ${coefficient}x = ${coefficient * x}. Divide by ${coefficient}: x = ${x}.`;
+        break;
+      }
+      case 6: {
+        const coefficient = randInt(2, 8);
+        const subtrahend = randInt(2, Math.min(15, (coefficient * x) - 1));
+        html = `${coefficient}x - ${subtrahend} = ${(coefficient * x) - subtrahend}`;
+        steps = `Add ${subtrahend}: ${coefficient}x = ${coefficient * x}. Divide by ${coefficient}: x = ${x}.`;
+        break;
+      }
+      case 7: {
+        const addend = randInt(2, 15);
+        html = `${addend} + x = ${addend + x}`;
+        steps = `Subtract ${addend} from both sides: x = ${x}.`;
+        break;
+      }
+      default: {
+        const coefficient = randInt(2, 8);
+        const result = coefficient * x;
+        html = `${result} = ${coefficient}x`;
+        steps = `Divide both sides by ${coefficient}: x = ${x}.`;
+      }
+    }
+
+    return { op: 'ALGEBRA', html, text: html, answer: x, steps };
+  }
+
   const TABS = {
     '+': { cls: 'add', label: 'Addition', harder: false,
            make: () => makeAddition(),
@@ -320,6 +391,9 @@
     'BODMAS': { cls: 'bodmas', label: 'BODMAS', harder: false,
                 make: () => bodmasMode === 'fraction' ? makeBodmasFraction() : makeSimpleBodmas(),
                 note: 'Follow Brackets, Orders, Division, Multiplication, Addition and Subtraction.' },
+    'ALGEBRA': { cls: 'algebra', label: 'Algebra', harder: false,
+                 make: () => makeAlgebra(),
+                 note: 'Solve each equation to find x.' },
   };
 
   let activeOp = '+';
@@ -350,7 +424,8 @@
     const showBodmas = activeOp === 'BODMAS';
     document.getElementById('bodmasWrap').style.display = showBodmas ? 'inline-flex' : 'none';
     document.getElementById('bodmasMode').value = bodmasMode;
-    document.getElementById('solutionsButton').style.display = showBodmas ? 'inline-block' : 'none';
+    const showSolutions = showBodmas || activeOp === 'ALGEBRA';
+    document.getElementById('solutionsButton').style.display = showSolutions ? 'inline-block' : 'none';
     document.getElementById('solutionsButton').textContent =
       solutionsVisible ? 'Hide Solutions' : 'Show Solutions';
 
@@ -375,15 +450,17 @@
       card.className = 'card ' + tab.cls;
       const problemHtml = p.op === 'BODMAS'
         ? `<div class="problem bodmas${p.kind === 'fraction' ? ' fraction-problem' : ''}" aria-label="${p.text}">${p.html}</div>`
+        : p.op === 'ALGEBRA'
+          ? `<div class="problem algebra" aria-label="${p.text}">${p.html}</div>`
         : `<div class="problem">${fmt(p.a)}<br>${p.op} ${fmt(p.b)}</div>`;
-      const solutionHtml = p.op === 'BODMAS'
+      const solutionHtml = p.op === 'BODMAS' || p.op === 'ALGEBRA'
         ? `<div class="solution${solutionsVisible ? ' visible' : ''}"><strong>Solution:</strong> ${p.steps}</div>`
         : '';
       card.innerHTML = `
         <div class="qnum">Problem ${i + 1}</div>
         ${problemHtml}
         <div class="answer-row">
-          <input type="number" inputmode="${p.op === 'BODMAS' ? 'decimal' : 'numeric'}" id="ans${i}" data-answer="${answer}" placeholder="?" autocomplete="off">
+          <input type="number" inputmode="${p.op === 'BODMAS' ? 'decimal' : 'numeric'}" id="ans${i}" data-answer="${answer}" placeholder="${p.op === 'ALGEBRA' ? 'x = ?' : '?'}" aria-label="${p.op === 'ALGEBRA' ? 'Value of x' : `Answer to problem ${i + 1}`}" autocomplete="off">
           <span class="feedback" id="fb${i}"></span>
         </div>
         ${solutionHtml}`;
