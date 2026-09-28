@@ -420,6 +420,8 @@
       if (numeratorValue <= 0 || denominatorValue <= 0) continue;
 
       const divisor = greatestCommonDivisor(numeratorValue, denominatorValue);
+      if (divisor === 1) continue;
+
       const ratioNumerator = numeratorValue / divisor;
       const ratioDenominator = denominatorValue / divisor;
       const xCoefficient =
